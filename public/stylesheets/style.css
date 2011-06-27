@@ -1,0 +1,61 @@
+body {
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+div#sidebar {
+    float: left;
+    width: 20%;
+}
+
+div#content {
+    margin-left: 20%;
+    margin-right: 20%;
+}
+
+a {
+  color:                #00B7FF;
+}
+
+div.board {
+    float:              left;
+    margin-left:        2em;
+}
+
+div.board canvas {
+  box-shadow:           5px 5px 5px #888;
+  border:               1px solid #888;
+}
+
+div.chat {
+    width:              100%;
+    display:            none;
+}
+
+div.chat ul {
+    background-color:   #F4F5F7;
+    height:             100%;
+    height:             15em;
+    overflow:           auto;
+    list-style:         none;
+    padding:            0;
+}
+
+div.chat ul li.user {
+    color:              blue;
+}
+
+div.chat ul li.enemy {
+    color:              red;
+}
+
+div.chat ul li.server {
+    color:              black;
+}
+
+div.chat input {
+    width:              100%;
+}
+
+div.controls a {
+    margin-right:       2em;
+}
