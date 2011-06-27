@@ -1,4 +1,1 @@
-Dots online game for two players.
-Written* with node.js
-
-* - coming soon
+# Multiplater go-like game built on top of node.js and socket.io
