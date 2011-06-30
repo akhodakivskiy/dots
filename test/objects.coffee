@@ -1,7 +1,9 @@
 vows    = require 'vows'
 assert  = require 'assert'
-Board   = require '../../dots/board'
-Dot     = require '../../dots/dot'
+
+BoardsIndex   = require '../dots/objects/boardsindex'
+Board         = require '../dots/objects/board'
+Dot           = require '../dots/objects/dot'
 
 suite = vows.describe 'board'
 
@@ -10,11 +12,12 @@ suite.addBatch
     topic: new Board 'user1', 'user2'
 
     'id': (board) ->
+      console.log 'aaaa'
       assert.isNotNull board.id
 
     'can move': (board) ->
-      assert.isTrue board.canMove 'user1'
-      assert.isFalse board.canMove 'user2'
+      assert.isTrue board.canMove 'user1', "user1 should be able to move"
+      assert.isFalse board.canMove 'user2', "user2 shouldn't be able to move"
 
     'illegal move': (board) ->
       board.addMove('user2', 1, 1)
@@ -42,5 +45,33 @@ suite.addBatch
 
       assert.equal board.messages[0].username, 'user1'
       assert.equal board.messages[0].message, 'hello world'
+
+suite.addBatch
+  'queue user':
+    topic: new BoardsIndex
+    'queue': (index) ->
+      index.on 'added', (board) ->
+        assert.include board.users, 'user1'
+        assert.include board.users, 'user2'
+
+      index.queue 'user1'
+      index.queue 'user2'
+
+      assert.length index.boards, 1
+  'remove board':
+    topic: new BoardsIndex
+    'remove': (index) ->
+      index.queue 'user1'
+      index.queue 'user2'
+
+      board = index.board 'user1'
+
+      assert.isNotNull board
+      assert.include board.users, 'user1'
+      assert.include board.users, 'user2'
+
+      index.remove board
+
+      assert.length index.boards, 0
 
 suite.export(module)
