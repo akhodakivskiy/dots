@@ -3,23 +3,42 @@ MemoryStore   = require './stores/memory'
 Store         = require './store'
 Session       = require './session'
 
+parseCookie = (str) ->
+  obj = {}
+  pairs = str.split /[;,] */
+  for pair in pairs
+    eqlIndex = pair.indexOf '='
+    key = pair.substr(0, eqlIndex).trim().toLowerCase()
+    val = pair.substr(++eqlIndex, pair.length).trim()
+
+    if val[0] == '"'
+      val = val.slice 1, -1
+
+    if obj[key] is undefined
+      obj[key] = decodeURIComponent(val.replace /\+/g, ' ')
+  obj
+
 class Server
   constructor: (@io, @opts) ->
+    opts ?= {}
     opts.store ?= new MemoryStore
     @emitter = new EventEmitter
-    @sockets = {}
-    @sessions = {}
+    @_sockets = {}
+    @_sessions = {}
+
+    @io.set 'authorization', @_authorize
 
     @io.sockets.on 'connection', (socket) =>
       @_sessionGetter socket, opts.store, (err, session) =>
         if not err
-          @sockets[session.id] = socket
-          @sessions[session.id] = session
+          @_sockets[session.id] = socket
+          @_sessions[session.id] = session
           @emitter.emit 'connection', session.id
 
           socket.on 'disconnect', =>
             @emitter.emit 'disconnect', session.id
-            delete @sockets[session.id]
+            delete @_sessions[session.id]
+            delete @_sockets[session.id]
         else
           console.log "Could not start a session for socket", err.stack
     
@@ -40,14 +59,22 @@ class Server
     @io.sockets.in(room).emit event, data
 
   emit: (sid, event, data, cb) ->
-    if socket = @sockets[sid]
+    if socket = @_sockets[sid]
       socket.emit event, data, cb
 
   socket: (sid) ->
-    return @sockets[sid]
+    return @_sockets[sid]
 
   session: (sid) ->
-    return @sessions[sid]
+    return @_sessions[sid]
+
+  _authorize: (data, cb) ->
+    newData = {}
+    cookies = parseCookie data.headers.cookie
+    if id = cookies['dots.sid']
+      newData['dots.sid'] = id
+    
+    cb null, true, newData
 
   _sessionGetter: (socket, store, cb) ->
     session = new Session socket, store

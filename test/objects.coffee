@@ -12,7 +12,6 @@ suite.addBatch
     topic: new Board 'user1', 'user2'
 
     'id': (board) ->
-      console.log 'aaaa'
       assert.isNotNull board.id
 
     'can move': (board) ->

@@ -59,3 +59,8 @@ div.chat input {
 div.controls a {
     margin-right:       2em;
 }
+
+div.user div input {
+    width:              9em;
+    margin-right:       1em;
+}

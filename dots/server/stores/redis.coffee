@@ -32,8 +32,4 @@ class RedisStore extends Store
   del: (sid, cb) ->
     @client.del @_key(sid), cb
 
-  nextGuest: (cb) ->
-    @client.incr "ids:session:guest", (err, val) ->
-      cb err, "guest#{val}"
-
 module.exports = RedisStore

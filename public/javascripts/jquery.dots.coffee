@@ -188,8 +188,12 @@ class SocketHandler
 
 
 class ChatHandler
-  constructor: (div, ul, input) ->
+  constructor: (div) ->
+    ul = $('<ul/>')
+    input = $('<input type="text" placeholder="Type Your Messsage"/>')
+    div.append(ul).append(input)
     div.hide()
+
     $(document).bind
       "dots.chat.message": (e, msg) ->
         message = msg.message
@@ -224,12 +228,12 @@ class ChatHandler
         $(input).val('')
 
 class ControlsHandler
-  constructor: (@div) ->
-    begin = @createHref('begin').click (e) ->
+  constructor: (div) ->
+    begin = @createHref('begin', div).click (e) ->
       $(document).trigger 'dots.socket.begin'
       end.show(); begin.hide()
 
-    end   = @createHref('end').hide().click (e) ->
+    end   = @createHref('end', div).hide().click (e) ->
       $(document).trigger 'dots.socket.end'
       end.hide(); begin.show()
 
@@ -239,9 +243,9 @@ class ControlsHandler
       'dots.controls.end': (e) ->
         begin.show(); end.hide()
 
-  createHref: (label) ->
+  createHref: (label, div) ->
     a = $("<a href=\"#\">#{label}</a>")
-    @div.append(a)
+    div.append(a)
     return a
 
 class StatusHandler
@@ -256,10 +260,17 @@ class StatusHandler
         pError.text text
         pError.stop(true, true).fadeIn('fast').delay(5000).fadeOut('fast')
 
+class UserHandler
+  constructor: (div) ->
+    auth = $('<div></div>').appendTo(div)
+    auth.append('<em>Login or Register:</em><br/>')
+    username  = $('<input type="text" name="login" placeholder="username"/>').appendTo(auth)
+    password  = $('<input type="password" name="login" placeholder="password"/>').appendTo(auth)
+    ok        = $('<a href="#">enter</a>').appendTo(auth)
+
 methods =
   socket: ->
-    socket = new SocketHandler
-    $(document).data('socket', socket)
+    $(document).data 'socket', new SocketHandler
 
   board: (options = {}) ->
     if canvas = document.createElement('canvas')
@@ -283,20 +294,10 @@ methods =
 
       $(document).trigger('dots.board.render')
 
-  controls: ->
-    new ControlsHandler $(this)
-  
-  status: ->
-    new StatusHandler $(this)
-
-  chat: (type) ->
-    $this = $(this)
-    ul = $('<ul/>')
-    input = $('<input type="text" placeholder="Type Your Messsage"/>')
-    $this.append(ul).append(input)
-
-    chat = new ChatHandler $this, ul, input
-    $this.data('chat', chat)
+  controls: -> new ControlsHandler $(this)
+  status: -> new StatusHandler $(this)
+  chat: -> new ChatHandler $(this)
+  user: -> new UserHandler $(this)
 
 $.fn.dots = (method) ->
   args = arguments

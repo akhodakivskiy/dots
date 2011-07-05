@@ -4,7 +4,6 @@ class MemoryStore extends Store
   constructor: (opts) ->
     super(opts)
 
-    @_nextId = 0
     @_sessions = {}
 
   get: (sid, cb) ->
@@ -17,8 +16,5 @@ class MemoryStore extends Store
   del: (sid, cb) ->
     delete @_sessions[sid]
     cb null
-
-  nextGuest: (cb) ->
-    cb null, "guest#{++@_nextId}"
 
 module.exports = MemoryStore

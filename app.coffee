@@ -17,7 +17,7 @@ app = connect.createServer(
 )
 
 app.listen(3000)
-io = require('./vendor/Socket.IO-node').listen(app)
+io = require('../socket.io').listen(app)
 #io = require('socket.io').listen(app)
 
 server  = new DotsServer io, 

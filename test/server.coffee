@@ -1,50 +1,42 @@
-vows          = require 'vows'
-assert        = require 'assert'
-EventEmitter  = require('events').EventEmitter
+vows    = require 'vows'
+assert  = require 'assert'
+mocks   = require './mocks/io'
 
-Server        = require '../dots/server/server'
-
-IOMock = ->
-  sockets: new EventEmitter
-
-ServerMock = ->
-  new Server(new IOMock)
-
-SocketMock = (id) ->
-  emitter = new EventEmitter
-  emitter.id = id
-  return emitter
+Server  = require '../dots/server/server'
 
 suite = vows.describe 'server'
 
 suite.addBatch
   'socket connection':
-    topic: () ->
-      server = new ServerMock
+    topic: ->
+      server = new Server(new mocks.IOMock)
       server.emitter.on 'connection', (sid) =>
-        this.callback null, sid
+        this.callback null, server, sid
 
-      server.io.sockets.emit 'connection', new SocketMock('sid')
+      server.io._connect 'socket id', 'session id'
       return
 
-    'connected': (err, sid) ->
+    'connected': (err, server, sid) ->
       assert.isNull err
-      assert.isNotNull sid 
+      assert.equal sid, 'session id'
+      assert.length Object.keys(server._sessions), 1
+      assert.length Object.keys(server._sockets), 1
 
   'socket disconnect':
-    topic: () ->
-      server = new ServerMock
+    topic: ->
+      server = new Server(new mocks.IOMock)
       server.emitter.on 'disconnect', (sid) =>
-        this.callback null, sid
+        this.callback null, server, sid
 
-      socket = new SocketMock('sid')
-      server.io.sockets.emit 'connection', socket 
-      socket.emit 'disconnect'
+      server.io._connect 'socket id', 'session id'
+      server.socket('session id').emit 'disconnect'
       return
 
-    'disconnect': (err, sid) ->
+    'disconnect': (err, server, sid) ->
       assert.isNull err
-      assert.isNotNull sid 
+      assert.equal sid, 'session id'
+      assert.length Object.keys(server._sessions), 0
+      assert.length Object.keys(server._sockets), 0
 
 
 

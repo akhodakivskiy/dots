@@ -7,14 +7,13 @@ class BoardPlugin extends Plugin
     super(@server)
     @endTimers = {}
 
-    @server.emitter.on 'session.join', (sid, username) =>
-      console.log sid, username
+    @server.emitter.on 'account.join', (sid, username) =>
       if board = @index.board username
         @disarmEndTimer board
         @join sid, board.id
         @emit sid, 'board.begin', board.toObject()
 
-    @server.emitter.on 'session.leave', (sid, username) =>
+    @server.emitter.on 'account.leave', (sid, username) =>
       if board = @index.board username
         @leave sid, board.id
         @armEndTimer board
@@ -65,10 +64,7 @@ class BoardPlugin extends Plugin
 
   armEndTimer: (board) ->
     @disarmEndTimer board
-    f = => 
-      console.log 'disarm board'
-      @index.remove board
-    @endTimers[board] = setTimeout f, @server.opts.timeout
+    @endTimers[board] = setTimeout (=> @index.remove board), @server.opts.timeout
 
   disarmEndTimer: (board) ->
     if id = @endTimers[board]
