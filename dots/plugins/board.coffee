@@ -1,6 +1,7 @@
 Plugin  = require '../server/plugin'
 Board   = require '../objects/board'
 Dot     = require '../objects/dot'
+config  = require '../../config'
 
 class BoardPlugin extends Plugin
   constructor: (@server, @index) ->
@@ -9,14 +10,14 @@ class BoardPlugin extends Plugin
 
     @server.emitter.on 'account.join', (sid, username) =>
       if board = @index.board username
-        @disarmEndTimer board
+        @index.disarmRemove board
         @join sid, board.id
         @emit sid, 'board.begin', board.toObject()
 
     @server.emitter.on 'account.leave', (sid, username) =>
       if board = @index.board username
         @leave sid, board.id
-        @armEndTimer board
+        @index.armRemove board, config.board.timeout
 
     @index.on 'added', (board) =>
       for username in board.users
@@ -61,14 +62,6 @@ class BoardPlugin extends Plugin
     else
       response.error = "Can't end game: session is invalid, please refresh the page"
     cb response
-
-  armEndTimer: (board) ->
-    @disarmEndTimer board
-    @endTimers[board] = setTimeout (=> @index.remove board), @server.opts.timeout
-
-  disarmEndTimer: (board) ->
-    if id = @endTimers[board]
-      clearTimeout id
 
   userSid: (username) ->
     for sid, session of @server.sessions

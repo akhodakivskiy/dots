@@ -4,3 +4,5 @@ module.exports =
     host: undefined
     port: undefined
     auth: undefined
+  board:
+    timeout: 60000

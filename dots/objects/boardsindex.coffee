@@ -5,14 +5,16 @@ class BoardsIndex extends EventEmitter
   constructor: ->
     @boards = []
     @_queue = []
+    @endTimers = {}
 
-  queue: (username) ->
-    if username not in @_queue
-      @_queue.push username
-      if @_queue.length > 1
-        board = new Board @_queue.shift(), @_queue.shift()
-        @boards.push board
-        @emit 'added', board
+  queue: ->
+    for username in arguments
+      if username not in @_queue
+        @_queue.push username
+        if @_queue.length > 1
+          board = new Board @_queue.shift(), @_queue.shift()
+          @boards.push board
+          @emit 'added', board
 
   deque: (username) ->
     if @isQueued username
@@ -33,5 +35,13 @@ class BoardsIndex extends EventEmitter
     if idx > -1
       @boards.splice(idx, 1)
       @emit 'removed', board
+
+  armRemove: (board, timeout) ->
+    @disarmRemove board
+    @endTimers[board] = setTimeout (=> @remove board), timeout
+
+  disarmRemove: (board) ->
+    if id = @endTimers[board]
+      clearTimeout id
 
 module.exports = BoardsIndex

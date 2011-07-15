@@ -1,6 +1,7 @@
 vows    = require 'vows'
 assert  = require 'assert'
 
+EventEmitter  = require('events').EventEmitter
 BoardsIndex   = require '../dots/objects/boardsindex'
 Board         = require '../dots/objects/board'
 Dot           = require '../dots/objects/dot'
@@ -72,5 +73,39 @@ suite.addBatch
       index.remove board
 
       assert.length index.boards, 0
+
+  'arm and disarm remove':
+    topic: new BoardsIndex
+    'arm':
+      topic: (index) ->
+        promise = new EventEmitter
+        index.queue 'user1', 'user2'
+        assert.isNotNull index.board 'user1'
+        assert.isNotNull index.board 'user2'
+
+        index.armRemove index.board('user1'), 1
+        index.on 'removed', (board) =>
+          this.callback null, index, board
+        return
+
+      'after remove': (err, index, board) ->
+        assert.length index.boards, 0
+        assert.isNotNull board
+
+    'disarm': (index) ->
+      topic: (index) ->
+        promise = new EventEmitter
+        index.queue 'user3', 'user4'
+        assert.isNotNull index.board 'user3'
+        assert.isNotNull index.board 'user4'
+
+        index.armRemove index.board('user3'), 9
+        setTimeout ( => index.disarmRemove index.board('user3')), 5
+        setTimeout ( => this.callback index ), 10
+        return
+
+      'verify disarm': (index) ->
+        assert.isNotNull index.board 'user3'
+
 
 suite.export(module)
